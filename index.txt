@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Tycoon: Mouse Hunter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            margin-bottom: 20px;
+            color: #4a4a4a;
+            border-bottom: 2px solid #ff6b6b;
+            padding-bottom: 10px;
+        }
+
+        .hunt-area {
+            text-align: center;
+        }
+
+        .cat {
+            font-size: 80px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: transform 0.2s;
+            user-select: none;
+        }
+
+        .cat:hover {
+            transform: scale(1.1);
+        }
+
+        .cat.hunting {
+            animation: bounce 0.5s;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2) rotate(10deg); }
+        }
+
+        .hunt-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .hunt-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .hunt-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .upgrade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .upgrade-info {
+            flex-grow: 1;
+        }
+
+        .upgrade-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .upgrade-desc {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .upgrade-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .upgrade-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .mice-display {
+            position: relative;
+            margin: 20px 0;
+            min-height: 200px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            border: 2px dashed #ccc;
+            overflow: hidden;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .mouse {
+            position: absolute;
+            font-size: 36px;
+            animation: scurry 2s infinite;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .mouse:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes scurry {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4ecdc4;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transform: translateX(300px);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            transition: width 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🐱 Cat Tycoon: Mouse Hunter 🐭</h1>
+            <p>Build your cat empire by hunting mice and upgrading your base!</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="money">0</div>
+                <div>Money</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="level">1</div>
+                <div>Cat Level</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="huntsPerSecond">0</div>
+                <div>Auto Hunts/sec</div>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="section">
+                <h2>🏡 Your Cat Base</h2>
+                <div class="hunt-area">
+                    <div class="cat" id="cat" onclick="hunt()">🐱</div>
+                    <button class="hunt-btn" id="huntBtn" onclick="hunt()">Hunt Mice!</button>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="huntProgress"></div>
+                    </div>
+                    <p id="huntStatus">Ready to hunt!</p>
+                </div>
+                <div class="mice-display" id="miceArea">
+                    <p style="color: #666; text-align: center; width: 100%;">No mice caught yet...</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🛠️ Upgrades</h2>
+                <div id="upgrades">
+                    <div class="upgrade-item">
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">Better Claws</div>
+                            <div class="upgrade-desc">+1 mouse per hunt</div>
+                        </div>
+                        <button class="upgrade-btn" onclick="buyUpgrade('claws')" id="clawsBtn">
+                            Buy: $10
+                        </button>
+                    </div>
+
+                    <div class="upgrade-item">
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">Cat Treats</div>
+                            <div class="upgrade-desc">+2 energy, faster hunting</div>
+                        </div>
+                        <button class="upgrade-btn" onclick="buyUpgrade('treats')" id="treatsBtn">
+                            Buy: $25
+                        </button>
+                    </div>
+
+                    <div class="upgrade-item">
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">Catnip Garden</div>
+                            <div class="upgrade-desc">Auto-hunt 1 mouse every 3 seconds</div>
+                        </div>
+                        <button class="upgrade-btn" onclick="buyUpgrade('catnip')" id="catnipBtn">
+                            Buy: $100
+                        </button>
+                    </div>
+
+                    <div class="upgrade-item">
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">Mouse Trap Network</div>
+                            <div class="upgrade-desc">Auto-hunt 3 mice every 2 seconds</div>
+                        </div>
+                        <button class="upgrade-btn" onclick="buyUpgrade('traps')" id="trapsBtn">
+                            Buy: $500
+                        </button>
+                    </div>
+
+                    <div class="upgrade-item">
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">Golden Collar</div>
+                            <div class="upgrade-desc">+$1 money per mouse caught</div>
+                        </div>
+                        <button class="upgrade-btn" onclick="buyUpgrade('collar')" id="collarBtn">
+                            Buy: $50
+                        </button>
+                    </div>
+
+                    <div class="upgrade-item">
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">Cat Army</div>
+                            <div class="upgrade-desc">Auto-hunt 10 mice every second!</div>
+                        </div>
+                        <button class="upgrade-btn" onclick="buyUpgrade('army')" id="armyBtn">
+                            Buy: $2000
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        let gameState = {
+            money: 0,
+            level: 1,
+            micePerHunt: 1,
+            huntCooldown: 1000,
+            moneyPerMouse: 1,
+            autoCatchRate: 0,
+            upgrades: {
+                claws: { owned: 0, cost: 10, costMultiplier: 1.5 },
+                treats: { owned: 0, cost: 25, costMultiplier: 1.5 },
+                collar: { owned: 0, cost: 50, costMultiplier: 1.8 },
+                catnip: { owned: 0, cost: 100, costMultiplier: 2 },
+                traps: { owned: 0, cost: 500, costMultiplier: 2 },
+                army: { owned: 0, cost: 2000, costMultiplier: 2.5 },
+                laser: { owned: 0, cost: 10000, costMultiplier: 3 }
+            },
+            autoHunters: [],
+            autoCatchers: [],
+            isHunting: false,
+            totalMiceCaught: 0
+        };
+
+        let huntProgress = 0;
+        let huntInterval;
+
+        function updateDisplay() {
+            document.getElementById('money').textContent = Math.floor(gameState.money);
+            document.getElementById('level').textContent = gameState.level;
+            
+            let autoHuntsPerSecond = 0;
+            gameState.autoHunters.forEach(hunter => {
+                autoHuntsPerSecond += hunter.rate;
+            });
+            document.getElementById('huntsPerSecond').textContent = autoHuntsPerSecond.toFixed(1);
+
+            updateUpgradeButtons();
+        }
+
+        function updateUpgradeButtons() {
+            const upgrades = gameState.upgrades;
+            
+            document.getElementById('clawsBtn').textContent = `Buy: ${Math.floor(upgrades.claws.cost)}`;
+            document.getElementById('clawsBtn').disabled = gameState.money < upgrades.claws.cost;
+            
+            document.getElementById('treatsBtn').textContent = `Buy: ${Math.floor(upgrades.treats.cost)}`;
+            document.getElementById('treatsBtn').disabled = gameState.money < upgrades.treats.cost;
+            
+            document.getElementById('collarBtn').textContent = `Buy: ${Math.floor(upgrades.collar.cost)}`;
+            document.getElementById('collarBtn').disabled = gameState.money < upgrades.collar.cost;
+            
+            document.getElementById('catnipBtn').textContent = `Buy: ${Math.floor(upgrades.catnip.cost)}`;
+            document.getElementById('catnipBtn').disabled = gameState.money < upgrades.catnip.cost;
+            
+            document.getElementById('trapsBtn').textContent = `Buy: ${Math.floor(upgrades.traps.cost)}`;
+            document.getElementById('trapsBtn').disabled = gameState.money < upgrades.traps.cost;
+            
+            document.getElementById('armyBtn').textContent = `Buy: ${Math.floor(upgrades.army.cost)}`;
+            document.getElementById('armyBtn').disabled = gameState.money < upgrades.army.cost;
+        }
+
+        function hunt() {
+            if (gameState.isHunting) return;
+            
+            gameState.isHunting = true;
+            huntProgress = 0;
+            
+            const cat = document.getElementById('cat');
+            const huntBtn = document.getElementById('huntBtn');
+            const progressFill = document.getElementById('huntProgress');
+            const huntStatus = document.getElementById('huntStatus');
+            
+            cat.classList.add('hunting');
+            huntBtn.disabled = true;
+            huntStatus.textContent = 'Hunting...';
+            
+            huntInterval = setInterval(() => {
+                huntProgress += 100 / (gameState.huntCooldown / 50);
+                progressFill.style.width = huntProgress + '%';
+                
+                if (huntProgress >= 100) {
+                    clearInterval(huntInterval);
+                    completehunt();
+                }
+            }, 50);
+        }
+
+        function completehunt() {
+            const miceArea = document.getElementById('miceArea');
+            const miceCaught = gameState.micePerHunt;
+            
+            if (miceArea.children.length === 1 && miceArea.children[0].tagName === 'P') {
+                miceArea.innerHTML = '';
+            }
+            
+            for (let i = 0; i < miceCaught; i++) {
+                spawnMouseAtRandomPosition(miceArea, 5000);
+            }
+            
+            gameState.totalMiceCaught += miceCaught;
+            gameState.level = Math.floor(gameState.totalMiceCaught / 10) + 1;
+            
+            const cat = document.getElementById('cat');
+            const huntBtn = document.getElementById('huntBtn');
+            const huntStatus = document.getElementById('huntStatus');
+            const progressFill = document.getElementById('huntProgress');
+            
+            cat.classList.remove('hunting');
+            huntBtn.disabled = false;
+            huntStatus.textContent = 'Ready to hunt!';
+            progressFill.style.width = '0%';
+            gameState.isHunting = false;
+            
+            updateDisplay();
+        }
+
+        function catchMouse(mouseElement) {
+            mouseElement.remove();
+            gameState.money += gameState.moneyPerMouse;
+            showNotification(`+${gameState.moneyPerMouse} 💰`);
+            updateDisplay();
+        }
+
+        function buyUpgrade(type) {
+            const upgrade = gameState.upgrades[type];
+            if (gameState.money < upgrade.cost) return;
+            
+            gameState.money -= upgrade.cost;
+            upgrade.owned++;
+            upgrade.cost *= upgrade.costMultiplier;
+            
+            switch(type) {
+                case 'claws':
+                    gameState.micePerHunt++;
+                    showNotification('Claws upgraded! +1 mouse per hunt');
+                    break;
+                case 'treats':
+                    gameState.huntCooldown = Math.max(200, gameState.huntCooldown - 100);
+                    showNotification('Faster hunting with treats!');
+                    break;
+                case 'collar':
+                    gameState.moneyPerMouse++;
+                    showNotification('Golden collar equipped! +$1 per mouse');
+                    break;
+                case 'catnip':
+                    addAutoHunter(2000, 2);
+                    showNotification('Catnip garden built!');
+                    break;
+                case 'traps':
+                    addAutoHunter(1500, 5);
+                    showNotification('Mouse trap network deployed!');
+                    break;
+                case 'army':
+                    addAutoHunter(800, 15);
+                    showNotification('Cat army recruited!');
+                    break;
+                case 'laser':
+                    startAutoCatcher(500);
+                    showNotification('Laser pointer activated! Auto-catching mice!');
+                    break;
+            }
+            
+            updateDisplay();
+        }
+
+        function addAutoHunter(interval, miceCount) {
+            const hunter = {
+                rate: miceCount / (interval / 1000),
+                interval: setInterval(() => {
+                    autoHunt(miceCount);
+                }, interval)
+            };
+            gameState.autoHunters.push(hunter);
+        }
+
+        function autoHunt(miceCount) {
+            const miceArea = document.getElementById('miceArea');
+            
+            if (miceArea.children.length === 1 && miceArea.children[0].tagName === 'P') {
+                miceArea.innerHTML = '';
+            }
+            
+            for (let i = 0; i < miceCount; i++) {
+                spawnMouseAtRandomPosition(miceArea, 3000);
+            }
+            
+            gameState.totalMiceCaught += miceCount;
+            gameState.level = Math.floor(gameState.totalMiceCaught / 10) + 1;
+            updateDisplay();
+        }
+
+        function spawnMouseAtRandomPosition(container, lifespan) {
+            const mouse = document.createElement('div');
+            mouse.className = 'mouse';
+            mouse.textContent = '🐭';
+            mouse.onclick = () => catchMouse(mouse);
+            
+            // Get container dimensions
+            const containerRect = container.getBoundingClientRect();
+            const containerWidth = container.offsetWidth - 60; // Account for padding and larger mouse size
+            const containerHeight = container.offsetHeight - 60;
+            
+            // Generate random position
+            const randomX = Math.random() * containerWidth;
+            const randomY = Math.random() * containerHeight;
+            
+            mouse.style.left = randomX + 'px';
+            mouse.style.top = randomY + 'px';
+            
+            container.appendChild(mouse);
+            
+            // Add random movement every few seconds
+            const moveInterval = setInterval(() => {
+                if (mouse.parentNode) {
+                    const newX = Math.random() * containerWidth;
+                    const newY = Math.random() * containerHeight;
+                    mouse.style.left = newX + 'px';
+                    mouse.style.top = newY + 'px';
+                }
+            }, 2000 + Math.random() * 3000); // Move every 2-5 seconds
+            
+            setTimeout(() => {
+                if (mouse.parentNode) {
+                    mouse.remove();
+                    clearInterval(moveInterval);
+                }
+            }, lifespan);
+        }
+
+        function startAutoCatcher(interval) {
+            const catcher = setInterval(() => {
+                const mice = document.querySelectorAll('.mouse');
+                if (mice.length > 0) {
+                    const randomMouse = mice[Math.floor(Math.random() * mice.length)];
+                    catchMouse(randomMouse);
+                }
+            }, interval);
+            
+            gameState.autoCatchers.push(catcher);
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize game
+        updateDisplay();
+        
+        // Auto-save every 10 seconds (with error handling)
+        setInterval(() => {
+            try {
+                localStorage.setItem('catTycoonSave', JSON.stringify(gameState));
+            } catch (e) {
+                // localStorage not available in this environment - silently continue
+            }
+        }, 10000);
+        
+        // Load save data if available (with error handling)
+        try {
+            const saveData = localStorage.getItem('catTycoonSave');
+            if (saveData) {
+                const loadedData = JSON.parse(saveData);
+                gameState = { ...gameState, ...loadedData };
+                gameState.autoHunters = []; // Reset auto hunters on load
+                updateDisplay();
+            }
+        } catch (e) {
+            // localStorage not available or data corrupt - start fresh
+            console.log('Starting fresh game - save/load not available');
+        }
+    </script>
+</body>
+</html>
